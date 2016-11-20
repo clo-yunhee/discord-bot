@@ -27,7 +27,8 @@ import java.util.Date;
 /**
  * Static class for a custom logger.<br>
  * <br>
- * @author NuclearCoder (contact on the GitHub repo)
+ * NuclearBot (https://github.com/NuclearCoder/)<br>
+ * @author NuclearCoder (contact me on GitHub)
  */
 public class Logger {
 	

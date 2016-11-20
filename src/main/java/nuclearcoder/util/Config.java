@@ -28,7 +28,8 @@ import java.util.Properties;
 /**
  * Static class for a configuration.<br>
  * <br>
- * @author NuclearCoder (contact on the GitHub repo)
+ * NuclearBot (https://github.com/NuclearCoder/)<br>
+ * @author NuclearCoder (contact me on GitHub)
  */
 public class Config {
 

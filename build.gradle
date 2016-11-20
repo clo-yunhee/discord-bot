@@ -25,6 +25,7 @@ repositories {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
+    compile "org.mapdb:mapdb:3.0.2"
     compile "com.github.austinv11:Discord4j:2.6.1"
     
     // The production code uses the SLF4J logging API at compile time

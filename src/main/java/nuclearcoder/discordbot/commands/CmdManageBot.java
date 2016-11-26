@@ -1,6 +1,6 @@
 package nuclearcoder.discordbot.commands;
 
-import nuclearcoder.discordbot.Bot;
+import nuclearcoder.discordbot.NuclearBot;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IPrivateChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -8,13 +8,14 @@ import sx.blah.discord.handle.obj.IUser;
 public class CmdManageBot implements Command {
 	
 	@Override
-	public void execute(Bot bot, IMessage message, String command, String[] args) throws Exception
+	public void execute(NuclearBot bot, IMessage message, String command, String[] args) throws Exception
 	{
 		IUser user = message.getAuthor();
 		
 		if (bot.isOperator(user))
 		{
 			IPrivateChannel pmChannel = user.getOrCreatePMChannel();
+			
 			if (command.equalsIgnoreCase("stop"))
 			{
 				bot.terminate(false);

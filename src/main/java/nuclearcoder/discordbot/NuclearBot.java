@@ -1,21 +1,16 @@
 package nuclearcoder.discordbot;
 
 import java.util.EnumSet;
-import java.util.NavigableSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
-
-import nuclearcoder.util.Config;
+import nuclearcoder.discordbot.commands.CommandManager;
+import nuclearcoder.discordbot.database.Database;
 import nuclearcoder.util.Logger;
-import nuclearcoder.util.UtilConstants;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.DiscordDisconnectedEvent;
+import sx.blah.discord.handle.impl.events.DisconnectedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IRole;
@@ -24,36 +19,26 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RateLimitException;
 
-public class Bot {
+public class NuclearBot {
 	
 	private volatile IDiscordClient client;
 	private final AtomicBoolean reconnect;
-	
-	private DB database;
 
 	private CommandManager commands;
 	
-	private NavigableSet<String> operators;
+	private TimerKeepAlive keeper;
 	
-	public Bot(String token) throws DiscordException
+	public NuclearBot(String token) throws DiscordException, RateLimitException
 	{
-		openDatabase();
-		
-		this.client = new ClientBuilder().withToken(token).build();
+		this.client = new ClientBuilder().withToken(token)
+											.setDaemon(true)
+											.build();
 		this.reconnect = new AtomicBoolean(true);
+		this.keeper = new TimerKeepAlive();
 		
-		this.operators = database.treeSet("operators", Serializer.STRING).createOrOpen();
+		client.getDispatcher().registerListener(this);
 		
-		operators.add(Config.get("first_op")); // add first op
-	}
-	
-	private void openDatabase()
-	{
-		database = DBMaker.fileDB(UtilConstants.DB_FILENAME)
-							.checksumHeaderBypass()
-							.closeOnJvmShutdown()
-							.transactionEnable()
-							.make();
+		//operators.add(Config.get("first_op")); // add first op
 	}
 	
 	/* accessors */
@@ -61,11 +46,6 @@ public class Bot {
 	public IDiscordClient getClient()
 	{
 		return client;
-	}
-	
-	public DB getDatabase()
-	{
-		return database;
 	}
 	
 	public CommandManager getCommandsManager()
@@ -80,64 +60,60 @@ public class Bot {
 	
 	/* bot methods */
 	
-	public void login() throws DiscordException
+	public void login() throws RateLimitException, DiscordException 
 	{
-		if (database.isClosed())
-		{
-			openDatabase();
-		}
-		
+		Database.openConnection();
+
+		Logger.info("Logging bot");
 		client.login();
-		client.getDispatcher().registerListener(this);
 	}
 	
-	public void terminate(boolean terminate)
+	public void terminate(boolean doReconnect) throws DiscordException
 	{
-		reconnect.set(terminate);
-        try
-        {
-            client.logout();
-        }
-        catch (RateLimitException | DiscordException e)
-        {
-            Logger.warning("Logout failed:");
-            Logger.printStackTrace(e);
-        }
+		reconnect.set(doReconnect);
+		
+		Logger.info("Disconnecting bot");
+        client.logout();
     }
 	
 	@EventSubscriber
     public void onReady(ReadyEvent event)
 	{
+        Logger.info("*** Bot is ready ***");
+        
 		this.commands = new CommandManager(this);
 		client.getDispatcher().registerListener(commands);
-		
-        Logger.info("*** Bot is ready ***");
     }
 
     @EventSubscriber
-    public void onDiscordDisconnected(DiscordDisconnectedEvent event)
+    public void onDisconnected(DisconnectedEvent event)
     {
     	CompletableFuture.runAsync(() -> {
-    		client.getDispatcher().unregisterListener(commands);
-    		client.getDispatcher().unregisterListener(this);
     		
-            Logger.info("Saving database");
-            database.commit();
-            database.close();
-            
+	        Database.closeConnection();
+	        
 	        if (reconnect.get())
 	        {
+	        	reconnect.set(false);
+	        	
+	        	client.getDispatcher().unregisterListener(commands);
+	
 	            Logger.info("Reconnecting bot");
 	            try
 	            {
 	                login();
 	            }
-	            catch (DiscordException e)
+	            catch (RateLimitException | DiscordException e)
 	            {
 	                Logger.warning("Failed to reconnect bot:");
 	                Logger.printStackTrace(e);
 	            }
 	        }
+	        else
+	        {
+	        	keeper.alive.set(false);
+	        }
+	        
     	});
     }
     
@@ -158,7 +134,7 @@ public class Bot {
     
     public boolean isOperator(IUser user)
     {
-    	return operators.contains(user.getID());
+    	return true;//operators.contains(user.getID());
     }
     
 	public void setOperator(IUser user, boolean isOp)
@@ -166,11 +142,11 @@ public class Bot {
 		String userId = user.getID();
 		if (isOp)
 		{
-			operators.add(userId);
+			//operators.add(userId);
 		}
 		else
 		{
-			operators.remove(userId);
+			//operators.remove(userId);
 		}
 	}
 

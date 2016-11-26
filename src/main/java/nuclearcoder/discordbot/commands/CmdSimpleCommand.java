@@ -1,6 +1,6 @@
 package nuclearcoder.discordbot.commands;
 
-import nuclearcoder.discordbot.Bot;
+import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.util.ArgumentFormatter;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
@@ -20,7 +20,7 @@ public class CmdSimpleCommand implements Command {
 	}
 
 	@Override
-	public void execute(Bot bot, IMessage message, String command, String[] args) throws MissingPermissionsException, RateLimitException, DiscordException
+	public void execute(NuclearBot bot, IMessage message, String command, String[] args) throws MissingPermissionsException, RateLimitException, DiscordException
 	{
 		if (guildId.equals(message.getGuild().getID()))
 		{

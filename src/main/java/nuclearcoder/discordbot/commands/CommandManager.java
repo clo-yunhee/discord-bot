@@ -1,11 +1,12 @@
-package nuclearcoder.discordbot;
+package nuclearcoder.discordbot.commands;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
-import nuclearcoder.discordbot.commands.CmdManageBot;
-import nuclearcoder.discordbot.commands.CmdManageSimpleCommands;
-import nuclearcoder.discordbot.commands.Command;
+import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.util.Config;
 import nuclearcoder.util.Logger;
 import sx.blah.discord.api.events.IListener;
@@ -14,30 +15,30 @@ import sx.blah.discord.handle.obj.IMessage;
 
 public class CommandManager implements IListener<MessageReceivedEvent> {
 	
-	private final Bot bot;
+	private final NuclearBot bot;
 	private final String cmdPrefix;
 	
-	private final Multimap<String, Command> commands;
+	private final Map<String, LinkedList<Command>> commands;
 	
-	public CommandManager(Bot bot)
+	public CommandManager(NuclearBot bot)
 	{
 		this.bot = bot;
 		this.cmdPrefix = Config.get("command_prefix");
-		this.commands = HashMultimap.create(30, 2);
+		this.commands = new HashMap<>();
 		
 		initCommands();
 	}
 	
 	private void initCommands()
 	{
-		CmdManageBot manageBot = new CmdManageBot();
-		commands.put("stop", manageBot);
-		commands.put("restart", manageBot);
-		commands.put("set_op", manageBot);
+		Set<Command> manageBot = Collections.singleton(new CmdManageBot());
+		commands.put("stop", new LinkedList<Command>(manageBot));
+		commands.put("restart", new LinkedList<Command>(manageBot));
+		commands.put("set_op", new LinkedList<Command>(manageBot));
 		
-		CmdManageSimpleCommands manageSimpleCommand = new CmdManageSimpleCommands(this, bot.getDatabase());
-		commands.put(CmdManageSimpleCommands.ADD_CMD, manageSimpleCommand);
-		commands.put(CmdManageSimpleCommands.REM_CMD, manageSimpleCommand);
+		Set<Command> manageSimpleCommands = Collections.singleton(new CmdManageSimpleCommands(this));
+		commands.put("add_cmd", new LinkedList<Command>(manageSimpleCommands));
+		commands.put("rem_cmd", new LinkedList<Command>(manageSimpleCommands));
 	}
 	
 	@Override
@@ -76,12 +77,16 @@ public class CommandManager implements IListener<MessageReceivedEvent> {
 	
 	public void putCommand(String label, Command command)
 	{
-		commands.put(label, command);
+		if (!commands.containsKey(label))
+		{
+			commands.put(label, new LinkedList<Command>());
+		}
+		commands.get(label).add(command);
 	}
 	
 	public void removeCommand(String label)
 	{
-		commands.removeAll(label);
+		commands.remove(label);
 	}
 	
 }

@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.misc;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -19,7 +20,7 @@ public class CmdKiss implements Command {
 
             final String target = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).trim();
 
-            bot.sendMessage(channel,
+            BotUtil.sendMessage(channel,
                     user.mention() + " kisses " + target + "  ( \u02D8 \u00B3\u02D8) ~~");
         }
     }

@@ -1,5 +1,7 @@
 package nuclearcoder.discordbot;
 
+import nuclearcoder.discordbot.database.Database;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -7,13 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimerKeepAlive extends TimerTask {
 
-    public static final long KEEP_ALIVE = TimeUnit.SECONDS.toMillis(2);
+    private static final long KEEP_ALIVE = TimeUnit.MINUTES.toMillis(5);
 
-    public final AtomicBoolean alive = new AtomicBoolean(true);
+    final AtomicBoolean alive = new AtomicBoolean(true);
 
     private Timer timer;
 
-    public TimerKeepAlive()
+    TimerKeepAlive()
     {
         this.timer = new Timer("keepalive", false);
         timer.schedule(this, KEEP_ALIVE, KEEP_ALIVE);
@@ -23,7 +25,7 @@ public class TimerKeepAlive extends TimerTask {
     {
         if (alive.get())
         {
-            Thread.yield();
+            Database.keepAlive();
         }
         else
         {

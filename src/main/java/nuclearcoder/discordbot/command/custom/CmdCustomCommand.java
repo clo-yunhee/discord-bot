@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.custom;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IMessage;
@@ -32,10 +33,13 @@ public class CmdCustomCommand implements Command {
                 System.arraycopy(args, 1, cmdArgs, 1, args.length - 1);
             }
 
-            String answer = formatter.format(cmdArgs);
-            if (answer != null)
+            try
             {
-                bot.sendMessage(message.getChannel(), answer);
+                BotUtil.sendMessage(message.getChannel(), formatter.format(cmdArgs));
+            }
+            catch (IllegalArgumentException e)
+            {
+                // fail silently
             }
         }
     }

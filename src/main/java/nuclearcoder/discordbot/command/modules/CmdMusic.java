@@ -7,6 +7,8 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.music.GuildMusicManager;
@@ -31,6 +33,26 @@ public class CmdMusic implements Command {
         AudioSourceManagers.registerLocalSource(playerManager);
     }
 
+    private static final String getInfo(AudioTrack track)
+    {
+        AudioTrackInfo info = track.getInfo();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("**");
+        sb.append(info.author);
+        sb.append(" - ");
+        sb.append(info.title);
+        sb.append("** `[");
+        sb.append(
+                BotUtil.stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getPosition())));
+        sb.append("/");
+        sb.append(
+                BotUtil.stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getDuration())));
+        sb.append("]`");
+
+        return sb.toString();
+    }
+
     private synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild)
     {
         GuildMusicManager musicManager = musicManagers
@@ -39,55 +61,6 @@ public class CmdMusic implements Command {
         guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
 
         return musicManager;
-    }
-
-    private String getInfo(AudioTrack track)
-    {
-        return null;
-    }
-
-    @Override public void execute(NuclearBot bot, IMessage message, String originalCommand,
-            String[] args)
-    {
-        String command = args.length > 1 ? args[1] : "";
-
-        if (command.equalsIgnoreCase("volume"))
-        {
-            volume(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("queue"))
-        {
-            queue(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("play"))
-        {
-            play(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("pause"))
-        {
-            pause(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("skip"))
-        {
-            skip(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("seek"))
-        {
-            seek(bot, message, args);
-        }
-        else if (command.equalsIgnoreCase("leave"))
-        {
-            leave(bot, message, args);
-        }
-        else
-        {
-            help(bot, message, args);
-        }
-
-    }
-
-    private void help(NuclearBot bot, IMessage message, String[] args)
-    {
     }
 
     private IVoiceChannel getVoiceChannel(List<IVoiceChannel> voiceChannels, String guildID)
@@ -102,7 +75,7 @@ public class CmdMusic implements Command {
         return null;
     }
 
-    private boolean joinVoiceChannel(NuclearBot bot, IMessage message)
+    private boolean joinVoiceChannel(IMessage message)
     {
         IGuild guild = message.getGuild();
         IUser user = message.getAuthor();
@@ -129,7 +102,50 @@ public class CmdMusic implements Command {
         return false;
     }
 
-    private void volume(NuclearBot bot, IMessage message, String[] args)
+    @Override public void execute(NuclearBot bot, IMessage message, String originalCommand,
+            String[] args)
+    {
+        String command = args.length > 1 ? args[1] : "";
+
+        if (command.equalsIgnoreCase("volume"))
+        {
+            volume(message, args);
+        }
+        else if (command.equalsIgnoreCase("queue"))
+        {
+            queue(message);
+        }
+        else if (command.equalsIgnoreCase("play"))
+        {
+            play(message, args);
+        }
+        else if (command.equalsIgnoreCase("pause"))
+        {
+            pause(message);
+        }
+        else if (command.equalsIgnoreCase("skip"))
+        {
+            skip(message);
+        }
+        else if (command.equalsIgnoreCase("seek"))
+        {
+            seek(message, args);
+        }
+        else if (command.equalsIgnoreCase("leave"))
+        {
+            leave(bot, message);
+        }
+        else
+        {
+            help(args);
+        }
+    }
+
+    private void help(String[] args)
+    {
+    }
+
+    private void volume(IMessage message, String[] args)
     {
         if (args.length >= 3)
         {
@@ -139,7 +155,8 @@ public class CmdMusic implements Command {
 
                 getGuildAudioPlayer(message.getGuild()).player.setVolume(volume);
 
-                bot.sendMessage(message.getChannel(), ":headphones: Set volume to " + volume + ".");
+                BotUtil.sendMessage(message.getChannel(),
+                        ":headphones: Set volume to " + volume + ".");
             }
             catch (NumberFormatException e)
             {
@@ -148,7 +165,7 @@ public class CmdMusic implements Command {
         }
     }
 
-    private void seek(NuclearBot bot, IMessage message, String[] args)
+    private void seek(IMessage message, String[] args)
     {
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
 
@@ -157,15 +174,15 @@ public class CmdMusic implements Command {
         {
             if (args.length >= 3)
             {
-                long position = Long.parseUnsignedLong(args[2]);
+                int seconds = BotUtil.parseTime(args[2]);
 
                 // in milliseconds
-                track.setPosition(TimeUnit.SECONDS.toMillis(position));
+                track.setPosition(TimeUnit.SECONDS.toMillis(seconds));
             }
         }
     }
 
-    private void queue(NuclearBot bot, IMessage message, String[] args)
+    private void queue(IMessage message)
     {
         IChannel channel = message.getChannel();
 
@@ -179,27 +196,27 @@ public class CmdMusic implements Command {
             StringBuilder sb = new StringBuilder();
             sb.append(":headphones: Queued:\n");
             sb.append("\u00A0  Next `");
-            sb.append(iterator.next().getInfo().title);
+            sb.append(getInfo(iterator.next()));
             sb.append("`\n");
             while (iterator.hasNext())
             {
                 sb.append("\u00A0  ");
                 sb.append(index);
                 sb.append(". `");
-                sb.append(iterator.next().getInfo().title);
+                sb.append(getInfo(iterator.next()));
                 sb.append("`\n");
                 index++;
             }
 
-            bot.sendMessage(channel, sb.toString());
+            BotUtil.sendMessage(channel, sb.toString());
         }
         else
         {
-            bot.sendMessage(channel, ":headphones: No music in the queue. :warning: ");
+            BotUtil.sendMessage(channel, ":headphones: No music in the queue. :warning: ");
         }
     }
 
-    private void play(NuclearBot bot, IMessage message, String[] args)
+    private void play(IMessage message, String[] args)
     {
         if (args.length >= 3)
         {
@@ -211,10 +228,9 @@ public class CmdMusic implements Command {
             playerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
                 @Override public void trackLoaded(AudioTrack track)
                 {
-                    bot.sendMessage(channel,
-                            ":headphones: Adding to queue " + track.getInfo().title);
+                    BotUtil.sendMessage(channel, ":headphones: Adding to queue " + getInfo(track));
 
-                    joinVoiceChannel(bot, message);
+                    joinVoiceChannel(message);
                     musicManager.scheduler.queue(track);
                 }
 
@@ -227,45 +243,45 @@ public class CmdMusic implements Command {
                         firstTrack = playlist.getTracks().get(0);
                     }
 
-                    bot.sendMessage(channel,
-                            ":headphones: Adding to queue " + firstTrack.getInfo().title
+                    BotUtil.sendMessage(channel,
+                            ":headphones: Adding to queue " + getInfo(firstTrack)
                                     + " (first track of playlist " + playlist.getName() + ")");
 
-                    joinVoiceChannel(bot, message);
+                    joinVoiceChannel(message);
                     musicManager.scheduler.queue(firstTrack);
                 }
 
                 @Override public void noMatches()
                 {
-                    bot.sendMessage(channel, ":headphones: Nothing found by " + trackURL);
+                    BotUtil.sendMessage(channel, ":headphones: Nothing found by " + trackURL);
                 }
 
                 @Override public void loadFailed(FriendlyException exception)
                 {
-                    bot.sendMessage(channel,
+                    BotUtil.sendMessage(channel,
                             ":headphones: Could not play: " + exception.getMessage());
                 }
             });
         }
     }
 
-    private void pause(NuclearBot bot, IMessage message, String[] args)
+    private void pause(IMessage message)
     {
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
         musicManager.player.setPaused(!musicManager.player.isPaused());
 
-        bot.sendMessage(message.getChannel(), ":headphones: Toggled pause.");
+        BotUtil.sendMessage(message.getChannel(), ":headphones: Toggled pause.");
     }
 
-    private void skip(NuclearBot bot, IMessage message, String[] args)
+    private void skip(IMessage message)
     {
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
         musicManager.scheduler.nextTrack();
 
-        bot.sendMessage(message.getChannel(), ":headphones: Skipped to next track.");
+        BotUtil.sendMessage(message.getChannel(), ":headphones: Skipped to next track.");
     }
 
-    private void leave(NuclearBot bot, IMessage message, String[] args)
+    private void leave(NuclearBot bot, IMessage message)
     {
         IGuild guild = message.getGuild();
 

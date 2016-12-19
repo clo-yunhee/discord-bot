@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.misc;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -19,7 +20,7 @@ public class CmdLick implements Command {
 
             final String target = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).trim();
 
-            bot.sendMessage(channel,
+            BotUtil.sendMessage(channel,
                     user.mention() + " licks " + target + "  ('\u30FB\u03C9\u30FB')");
         }
     }

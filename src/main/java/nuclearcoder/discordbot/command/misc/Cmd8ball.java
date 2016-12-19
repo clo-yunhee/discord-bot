@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.misc;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -54,7 +55,7 @@ public class Cmd8ball implements Command {
 
         String answer = answers[random.nextInt(answers.length)];
 
-        bot.sendMessage(channel, user.mention() + "\n:8ball: " + answer);
+        BotUtil.sendMessage(channel, user.mention() + "\n:8ball: " + answer);
     }
 
 }

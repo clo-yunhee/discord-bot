@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.modules;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.cah.CahConfig;
 import nuclearcoder.discordbot.cah.CahGame;
@@ -12,9 +13,6 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.Permissions;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -53,51 +51,51 @@ public class CmdCah implements Command {
 
         if (command.equalsIgnoreCase("help"))
         {
-            help(bot, message, args);
+            help(args);
         }
         else if (command.equalsIgnoreCase("setchan"))
         {
-            setChan(bot, message, args);
+            setChan(message);
         }
         else if (channel.get() != null && channel.get().getID().equals(sentChannel.getID()))
         {
-            boolean hasPerm = bot.hasPermission(message.getAuthor(), message.getGuild(),
+            boolean hasPerm = BotUtil.hasPermission(message.getAuthor(), message.getGuild(),
                     Permissions.MANAGE_MESSAGES);
             if (hasPerm && command.equalsIgnoreCase("config"))
             {
-                config(bot, message, args);
+                config(args);
             }
             else if (hasPerm && command.equalsIgnoreCase("deckadd"))
             {
-                deckadd(bot, message, args);
+                deckadd(args);
             }
             else if (hasPerm && command.equalsIgnoreCase("deckremove"))
             {
-                deckremove(bot, message, args);
+                deckremove(args);
             }
             else if (hasPerm && command.equalsIgnoreCase("deckrmall"))
             {
-                deckrmall(bot, message, args);
+                deckrmall();
             }
             else if (hasPerm && command.equalsIgnoreCase("start"))
             {
-                start(bot, message, args);
+                start();
             }
             else if (hasPerm && command.equalsIgnoreCase("stop"))
             {
-                stop(bot, message, args);
+                stop();
             }
             else if (command.equalsIgnoreCase("join"))
             {
-                join(bot, message, args);
+                join(message);
             }
             else if (command.equalsIgnoreCase("leave"))
             {
-                leave(bot, message, args);
+                leave(message);
             }
             else
             {
-                pick(bot, message, args);
+                pick(message, args);
             }
         }
 
@@ -105,28 +103,17 @@ public class CmdCah implements Command {
 
     private void sendMessage(String message)
     {
-        RequestBuffer.request(() ->
-        {
-            try
-            {
-                channel.get().sendMessage(message);
-            }
-            catch (MissingPermissionsException | DiscordException e)
-            {
-                Logger.error("Couldn't send message:");
-                Logger.printStackTrace(e);
-            }
-        });
+        BotUtil.sendMessage(channel.get(), message);
     }
 
-    private void help(NuclearBot bot, IMessage message, String[] args)
+    private void help(String[] args)
     {
         sendMessage("Help is not written yet. Sorryyy~ :slight_frown: ");
         sendMessage(
                 "For the time being, here's a list of available commands: ```config, deckadd, deckremove, deckrmall, start, stop, join, leave```");
     }
 
-    private void setChan(NuclearBot bot, IMessage message, String[] args)
+    private void setChan(IMessage message)
     {
         IChannel sentChannel = message.getChannel();
 
@@ -144,36 +131,36 @@ public class CmdCah implements Command {
         }
     }
 
-    private void config(NuclearBot bot, IMessage message, String[] args)
+    private void config(String[] args)
     {
-        if (cah.isRunning())
+        if (args.length < 3)
         {
-            sendMessage("The game is already running, change config when it's over. :warning: ");
+            sendMessage("Available config keys: ```" + "- minPlayers\n" + "- maxScore\n"
+                    + "- whiteTimeout\n" + "- blackTimeout\n" + "- timeBetweenRounds\n" + "```");
+        }
+        else if (args.length == 3)
+        {
+            String key = args[2];
+            if (key.equalsIgnoreCase("save")) // `save` will be a sub-command
+            {
+                config.save();
+                sendMessage("Config was saved. :white_check_mark: ");
+            }
+            else
+            {
+                Integer value = config.get(key);
+                if (value != null) // filter defined entries
+                {
+                    sendMessage("Config value: ```" + key + " = " + value + "```");
+                }
+            }
         }
         else
         {
-            if (args.length < 3)
+            if (cah.isRunning())
             {
-                sendMessage("Available config keys: ```" + "- minPlayers\n" + "- maxScore\n"
-                        + "- whiteTimeout\n" + "- blackTimeout\n" + "- timeBetweenRounds\n"
-                        + "```");
-            }
-            else if (args.length == 3)
-            {
-                String key = args[2];
-                if (key.equalsIgnoreCase("save")) // `save` will be a sub-command
-                {
-                    config.save();
-                    sendMessage("Config was saved. :white_check_mark: ");
-                }
-                else
-                {
-                    Integer value = config.get(key);
-                    if (value != null) // filter defined entries
-                    {
-                        sendMessage("Config value: ```" + key + " = " + value + "```");
-                    }
-                }
+                sendMessage(
+                        "The game is already running, change config when it's over. :warning: ");
             }
             else
             {
@@ -195,7 +182,7 @@ public class CmdCah implements Command {
         }
     }
 
-    private void deckadd(NuclearBot bot, IMessage message, String[] args)
+    private void deckadd(String[] args)
     {
         if (args.length < 3)
         {
@@ -217,7 +204,7 @@ public class CmdCah implements Command {
         }
     }
 
-    private void deckremove(NuclearBot bot, IMessage message, String[] args)
+    private void deckremove(String[] args)
     {
         if (args.length < 3)
         {
@@ -233,33 +220,33 @@ public class CmdCah implements Command {
         }
     }
 
-    private void deckrmall(NuclearBot bot, IMessage message, String[] args)
+    private void deckrmall()
     {
         cah.getCardProvider().resetDecks();
 
         sendMessage("Removed all decks. :white_check_mark: ");
     }
 
-    private void start(NuclearBot bot, IMessage message, String[] args)
+    private void start()
     {
         sendMessage("Starting the game... :timer: ");
 
         cah.start();
     }
 
-    private void stop(NuclearBot bot, IMessage message, String[] args)
+    private void stop()
     {
         sendMessage("Forcefully stopping the game... :timer: ");
 
         cah.stop();
     }
 
-    private void join(NuclearBot bot, IMessage message, String[] args)
+    private void join(IMessage message)
     {
         IUser user = message.getAuthor();
         List<IUser> mentions = message.getMentions();
 
-        if (bot.isOperator(user.getID()) && !mentions.isEmpty())
+        if (BotUtil.isOperator(user.getID()) && !mentions.isEmpty())
         {
             for (IUser mention : message.getMentions())
                 cah.addPlayer(mention);
@@ -270,12 +257,12 @@ public class CmdCah implements Command {
         }
     }
 
-    private void leave(NuclearBot bot, IMessage message, String[] args)
+    private void leave(IMessage message)
     {
         IUser user = message.getAuthor();
         List<IUser> mentions = message.getMentions();
 
-        if (bot.isOperator(user.getID()) && !mentions.isEmpty())
+        if (BotUtil.isOperator(user.getID()) && !mentions.isEmpty())
         {
             for (IUser mention : mentions)
                 cah.removePlayer(mention);
@@ -286,7 +273,7 @@ public class CmdCah implements Command {
         }
     }
 
-    private void pick(NuclearBot bot, IMessage message, String[] args)
+    private void pick(IMessage message, String[] args)
     {
         if (cah.isRunning())
         {

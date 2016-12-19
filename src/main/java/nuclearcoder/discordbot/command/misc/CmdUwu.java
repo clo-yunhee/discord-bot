@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.misc;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IMessage;
@@ -10,7 +11,7 @@ public class CmdUwu implements Command {
 
     @Override public void execute(NuclearBot bot, IMessage message, String command, String[] args)
     {
-        bot.sendFileURL(message.getChannel(), "", UWU, "uwu.jpg");
+        BotUtil.sendFileURL(message.getChannel(), "", UWU, "uwu.jpg");
     }
 
 }

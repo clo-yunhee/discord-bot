@@ -1,13 +1,11 @@
 package nuclearcoder.discordbot.cah;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.cah.card.CahBlackCard;
 import nuclearcoder.discordbot.cah.card.CahCardProvider;
 import nuclearcoder.util.Logger;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -123,22 +121,14 @@ public class CahGame {
 
     public void pickCardCzar(String userID, int index)
     {
-        try
+        if (players.get(userID).setPickedCard(index, pickPlayers.length))
         {
-            if (players.get(userID).setPickedCard(index, pickPlayers.length))
-            {
-                taskWaitCzar.cancel();
-                taskWaitCzar.run();
-            }
-            else
-            {
-                sendMessage("You must enter a number that matches a card. :warning: ");
-            }
+            taskWaitCzar.cancel();
+            taskWaitCzar.run();
         }
-        catch (Exception e)
+        else
         {
-            Logger.error("Couldn't update hand message:");
-            Logger.printStackTrace(e);
+            sendMessage("You must enter a number that matches a card. :warning: ");
         }
     }
 
@@ -209,19 +199,7 @@ public class CahGame {
 
     private void sendMessage(final String message)
     {
-        RequestBuffer.request(() ->
-        {
-            try
-            {
-                return channel.get().sendMessage(message);
-            }
-            catch (MissingPermissionsException | DiscordException e)
-            {
-                Logger.error("Couldn't send message:");
-                Logger.printStackTrace(e);
-                return null;
-            }
-        });
+        BotUtil.sendMessage(channel.get(), message);
     }
 
     private String mention(String userID)

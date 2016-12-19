@@ -6,11 +6,12 @@ import nuclearcoder.util.Logger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 public class Database {
 
-    public static final String DRIVER = "com.mysql.jdbc.Driver";
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
 
     static Connection conn = null;
 
@@ -91,4 +92,15 @@ public class Database {
         }
     }
 
+    public static final void keepAlive()
+    {
+        try (Statement statement = conn.createStatement())
+        {
+            statement.execute("SELECT null FROM singletons");
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
 }

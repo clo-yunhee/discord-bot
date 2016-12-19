@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.misc;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import sx.blah.discord.handle.obj.IChannel;
@@ -32,7 +33,7 @@ public class CmdRoll implements Command {
             IChannel channel = message.getChannel();
             IUser user = message.getAuthor();
 
-            bot.sendMessage(channel, user.mention() + " rolled " + roll + ".");
+            BotUtil.sendMessage(channel, user.mention() + " rolled " + roll + ".");
         }
         catch (IllegalArgumentException e)
         {

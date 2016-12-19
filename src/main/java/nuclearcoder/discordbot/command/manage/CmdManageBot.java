@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.manage;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.util.Logger;
@@ -16,7 +17,7 @@ public class CmdManageBot implements Command {
     {
         final IUser user = message.getAuthor();
 
-        if (bot.isOperator(user.getID()))
+        if (BotUtil.isOperator(user.getID()))
         {
             RequestBuffer.request(() ->
             {
@@ -47,13 +48,14 @@ public class CmdManageBot implements Command {
                             for (IUser mentioned : message.getMentions())
                             {
                                 // set op
-                                bot.setOperator(mentioned.getID(), setOp);
+                                BotUtil.setOperator(mentioned.getID(), setOp);
                                 // notify new op
-                                bot.sendMessage(mentioned.getOrCreatePMChannel(), notification);
-                                sb.append("\n- " + mentioned.mention());
+                                BotUtil.sendMessage(mentioned.getOrCreatePMChannel(), notification);
+                                sb.append("\n- ");
+                                sb.append(mentioned.mention());
                             }
 
-                            bot.sendMessage(pmChannel, sb.toString());
+                            BotUtil.sendMessage(pmChannel, sb.toString());
                             // notify executor
                         }
                     }

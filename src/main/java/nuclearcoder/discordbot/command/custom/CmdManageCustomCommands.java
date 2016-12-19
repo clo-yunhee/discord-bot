@@ -1,5 +1,6 @@
 package nuclearcoder.discordbot.command.custom;
 
+import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.command.CommandManager;
@@ -61,9 +62,9 @@ public class CmdManageCustomCommands implements Command {
         IUser user = message.getAuthor();
         IGuild guild = message.getGuild();
 
-        if (!bot.hasPermission(user, guild, Permissions.MANAGE_MESSAGES))
+        if (!BotUtil.hasPermission(user, guild, Permissions.MANAGE_MESSAGES))
         {
-            bot.reply(message,
+            BotUtil.reply(message,
                     "you need a guild-wide \"Manage Messages\" permission to (un-)register a command. :warning:");
         }
         else
@@ -74,7 +75,7 @@ public class CmdManageCustomCommands implements Command {
             {
                 if (args.length <= 2)
                 {
-                    bot.reply(message, "you must provide command name and reply. :warning:");
+                    BotUtil.reply(message, "you must provide command name and reply. :warning:");
                 }
                 else
                 {
@@ -82,7 +83,7 @@ public class CmdManageCustomCommands implements Command {
 
                     if (commandsManager.hasCommand(argCommand))
                     {
-                        bot.reply(message,
+                        BotUtil.reply(message,
                                 "this command already exists. You can un-register if it's a custom command. :warning:");
                     }
                     else
@@ -92,7 +93,7 @@ public class CmdManageCustomCommands implements Command {
 
                         register(bot, message, argCommand, argAnswer);
 
-                        bot.sendMessage(message.getChannel(), "the `" + argCommand
+                        BotUtil.sendMessage(message.getChannel(), "the `" + argCommand
                                 + "` command was created successfully. :white_check_mark:");
                     }
                 }
@@ -101,7 +102,7 @@ public class CmdManageCustomCommands implements Command {
             {
                 if (args.length <= 1)
                 {
-                    bot.reply(message, "you must provide command name. :warning:");
+                    BotUtil.reply(message, "you must provide command name. :warning:");
                 }
                 else
                 {
@@ -114,18 +115,19 @@ public class CmdManageCustomCommands implements Command {
                     }
                     catch (SQLException e)
                     {
+                        // fail silently
                     }
 
                     if (!commandExists)
                     {
-                        bot.reply(message,
+                        BotUtil.reply(message,
                                 "this command does not exist or is reserved. You can register if it's a custom command. :warning:");
                     }
                     else
                     {
                         unregister(bot, message, argCommand);
 
-                        bot.sendMessage(message.getChannel(), "the `" + argCommand
+                        BotUtil.sendMessage(message.getChannel(), "the `" + argCommand
                                 + "` command was removed successfully. :white_check_mark:");
                     }
                 }

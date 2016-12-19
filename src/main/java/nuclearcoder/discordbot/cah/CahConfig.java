@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 public class CahConfig {
 
-    public static final String MINIMUM_PLAYERS = "minPlayers";
-    public static final String MAXIMUM_SCORE = "maxScore";
-    public static final String WHITE_TIMEOUT = "whiteTimeout";
-    public static final String BLACK_TIMEOUT = "blackTimeout";
-    public static final String TIME_BETWEEN_ROUNDS = "timeBetweenRounds";
+    static final String MINIMUM_PLAYERS = "minPlayers";
+    static final String MAXIMUM_SCORE = "maxScore";
+    static final String WHITE_TIMEOUT = "whiteTimeout";
+    static final String BLACK_TIMEOUT = "blackTimeout";
+    static final String TIME_BETWEEN_ROUNDS = "timeBetweenRounds";
 
     private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>() {
     }.getType();
@@ -26,7 +26,7 @@ public class CahConfig {
 
     public CahConfig()
     {
-        this.config = new HashMap<String, Integer>();
+        this.config = new HashMap<>();
         config.put(MINIMUM_PLAYERS, 4);
         config.put(MAXIMUM_SCORE, 8);
         config.put(WHITE_TIMEOUT, (int) TimeUnit.MINUTES.toSeconds(2));
@@ -75,16 +75,16 @@ public class CahConfig {
         }
     }
 
-    public void load()
+    private void load()
     {
         try
         {
             String data = SqlSingletons.Cah.getConfig();
             Gson gson = new Gson();
 
-            Map<String, Integer> deserialized = gson.fromJson(data, MAP_TYPE);
-            if (deserialized != null)
-                config.putAll(deserialized);
+            Map<String, Integer> deSerialized = gson.fromJson(data, MAP_TYPE);
+            if (deSerialized != null)
+                config.putAll(deSerialized);
         }
         catch (SQLException e)
         {
@@ -98,14 +98,14 @@ public class CahConfig {
         return config.get(key);
     }
 
-    public String getString(String key)
-    {
-        return beautify(get(key));
-    }
-
     public void set(String key, int value)
     {
         config.put(key, value);
+    }
+
+    String getString(String key)
+    {
+        return beautify(get(key));
     }
 
 }

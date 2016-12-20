@@ -1,6 +1,8 @@
 package nuclearcoder.util;
 
 import nuclearcoder.discordbot.NuclearBot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Properties;
@@ -31,17 +33,18 @@ import java.util.Properties;
  */
 public class Config {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+
     private static final Properties prop;
     private static final File configFile;
 
     static
     {
-        Runtime.getRuntime().addShutdownHook(new Thread(new ConfigShutdownHook()));
         configFile = new File(NuclearBot.CONFIG_FILENAME);
 
         if (configFile.isDirectory())
         {
-            Logger.error("Couldn't write to config.properties in the program's directory.");
+            LOGGER.error("Couldn't write to config.properties in the program's directory.");
             System.exit(1);
         }
         if (!configFile.exists()) // copy the default file if it doesn't exist
@@ -64,21 +67,24 @@ public class Config {
             }
             catch (IOException e)
             {
-                Logger.error("An error occurred while writing default config.");
-                Logger.printStackTrace(e);
+                LOGGER.error("An error occurred while writing default config:", e);
                 try
                 {
-                    out.close();
+                    if (out != null)
+                        out.close();
                 }
                 catch (IOException silent)
                 {
+                    // silent
                 }
                 try
                 {
-                    in.close();
+                    if (in != null)
+                        in.close();
                 }
                 catch (IOException silent)
                 {
+                    // silent
                 }
                 System.exit(1);
             }
@@ -94,20 +100,18 @@ public class Config {
         }
         catch (IOException e)
         {
-            Logger.error("An error occurred while loading config.");
-            Logger.printStackTrace(e);
+            LOGGER.error("An error occurred while loading config.", e);
         }
         finally
         {
-            if (in != null)
+            try
             {
-                try
-                {
+                if (in != null)
                     in.close();
-                }
-                catch (IOException e)
-                {
-                }
+            }
+            catch (IOException e)
+            {
+                // silent
             }
         }
 
@@ -131,6 +135,7 @@ public class Config {
         }
         catch (IOException e)
         {
+            // silent
         }
     }
 
@@ -151,6 +156,7 @@ public class Config {
         }
         catch (IOException e)
         {
+            // silent
         }
     }
 
@@ -202,24 +208,6 @@ public class Config {
     public static String set(final String key, final Object value)
     {
         return (String) prop.setProperty(key, String.valueOf(value));
-    }
-
-    private static class ConfigShutdownHook implements Runnable {
-
-        @Override public void run()
-        {
-            Logger.info("(Exit) Saving config.");
-            try
-            {
-                saveConfig();
-            }
-            catch (IOException e)
-            {
-                Logger.error("(Exit) Couldn't save config.");
-                Logger.printStackTrace(e);
-            }
-        }
-
     }
 
 }

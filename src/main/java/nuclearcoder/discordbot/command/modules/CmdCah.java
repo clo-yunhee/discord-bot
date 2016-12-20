@@ -7,7 +7,8 @@ import nuclearcoder.discordbot.cah.CahGame;
 import nuclearcoder.discordbot.cah.card.CahCardDeck;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.database.SqlSingletons;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CmdCah implements Command {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmdCah.class);
 
     private final CahConfig config;
     private final CahGame cah;
@@ -37,8 +40,7 @@ public class CmdCah implements Command {
         }
         catch (SQLException e)
         {
-            Logger.error("Couldn't set channel from database:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't set channel from database:", e);
         }
     }
 
@@ -126,8 +128,7 @@ public class CmdCah implements Command {
         }
         catch (SQLException e)
         {
-            Logger.error("Couldn't set CaH channel in database:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't set CaH channel in database:", e);
         }
     }
 

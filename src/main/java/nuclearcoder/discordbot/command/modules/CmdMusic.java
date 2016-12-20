@@ -12,7 +12,8 @@ import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.music.GuildMusicManager;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.MissingPermissionsException;
 
@@ -20,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class CmdMusic implements Command {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmdMusic.class);
 
     private final AudioPlayerManager playerManager;
     private final Map<String, GuildMusicManager> musicManagers;
@@ -37,20 +40,12 @@ public class CmdMusic implements Command {
     {
         AudioTrackInfo info = track.getInfo();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("**");
-        sb.append(info.author);
-        sb.append(" - ");
-        sb.append(info.title);
-        sb.append("** `[");
-        sb.append(
-                BotUtil.stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getPosition())));
-        sb.append("/");
-        sb.append(
-                BotUtil.stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getDuration())));
-        sb.append("]`");
+        String position = BotUtil
+                .stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getPosition()));
+        String duration = BotUtil
+                .stringFromTime((int) TimeUnit.MILLISECONDS.toSeconds(track.getDuration()));
 
-        return sb.toString();
+        return "**" + info.author + " - " + info.title + "** `[" + position + "/" + duration + "]`";
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild)
@@ -85,17 +80,21 @@ public class CmdMusic implements Command {
         {
             final IVoiceChannel voiceChannel = getVoiceChannel(connectedVoiceChannels,
                     guild.getID());
-            if (voiceChannel != null && !voiceChannel.isConnected())
+            if (voiceChannel != null)
             {
-                try
-                {
-                    voiceChannel.join();
+                if (voiceChannel.isConnected())
                     return true;
-                }
-                catch (MissingPermissionsException e)
+                else
                 {
-                    Logger.error("Couldn't join voice channel:");
-                    Logger.printStackTrace(e);
+                    try
+                    {
+                        voiceChannel.join();
+                        return true;
+                    }
+                    catch (MissingPermissionsException e)
+                    {
+                        LOGGER.error("Couldn't join voice channel:", e);
+                    }
                 }
             }
         }
@@ -187,24 +186,24 @@ public class CmdMusic implements Command {
         IChannel channel = message.getChannel();
 
         GuildMusicManager musicManager = getGuildAudioPlayer(message.getGuild());
+        AudioTrack playingTrack = musicManager.player.getPlayingTrack();
         Queue<AudioTrack> queue = musicManager.scheduler.getQueue();
-        if (!queue.isEmpty())
+        if (!queue.isEmpty() || playingTrack != null)
         {
             Iterator<AudioTrack> iterator = queue.iterator();
             int index = 1;
 
             StringBuilder sb = new StringBuilder();
-            sb.append(":headphones: Queued:\n");
-            sb.append("\u00A0  Next `");
-            sb.append(getInfo(iterator.next()));
-            sb.append("`\n");
+            sb.append(":headphones: ̈Playing:\n");
+            sb.append("Playing  ");
+            sb.append(getInfo(playingTrack));
+            sb.append('\n');
             while (iterator.hasNext())
             {
-                sb.append("\u00A0  ");
                 sb.append(index);
-                sb.append(". `");
+                sb.append(".  ");
                 sb.append(getInfo(iterator.next()));
-                sb.append("`\n");
+                sb.append('\n');
                 index++;
             }
 
@@ -228,27 +227,31 @@ public class CmdMusic implements Command {
             playerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
                 @Override public void trackLoaded(AudioTrack track)
                 {
-                    BotUtil.sendMessage(channel, ":headphones: Adding to queue " + getInfo(track));
-
-                    joinVoiceChannel(message);
-                    musicManager.scheduler.queue(track);
+                    if (joinVoiceChannel(message))
+                    {
+                        BotUtil.sendMessage(channel,
+                                ":headphones: Adding to queue " + getInfo(track));
+                        musicManager.scheduler.queue(track);
+                    }
                 }
 
                 @Override public void playlistLoaded(AudioPlaylist playlist)
                 {
-                    AudioTrack firstTrack = playlist.getSelectedTrack();
-
-                    if (firstTrack == null)
+                    if (joinVoiceChannel(message))
                     {
-                        firstTrack = playlist.getTracks().get(0);
+                        AudioTrack firstTrack = playlist.getSelectedTrack();
+
+                        if (firstTrack == null)
+                        {
+                            firstTrack = playlist.getTracks().get(0);
+                        }
+
+                        BotUtil.sendMessage(channel,
+                                ":headphones: Adding to queue " + getInfo(firstTrack)
+                                        + " (first track of playlist " + playlist.getName() + ")");
+
+                        musicManager.scheduler.queue(firstTrack);
                     }
-
-                    BotUtil.sendMessage(channel,
-                            ":headphones: Adding to queue " + getInfo(firstTrack)
-                                    + " (first track of playlist " + playlist.getName() + ")");
-
-                    joinVoiceChannel(message);
-                    musicManager.scheduler.queue(firstTrack);
                 }
 
                 @Override public void noMatches()

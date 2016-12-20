@@ -1,7 +1,8 @@
 package nuclearcoder.discordbot;
 
 import nuclearcoder.discordbot.database.SqlUsers;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.*;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -20,6 +21,8 @@ import java.sql.SQLException;
 import java.util.EnumSet;
 
 public class BotUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BotUtil.class);
 
     static final void hackSslVerifier()
     {
@@ -54,8 +57,7 @@ public class BotUtil {
         }
         catch (final Exception e)
         {
-            Logger.error("Unable to install trust-all security manager:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Unable to install trust-all security manager:", e);
         }
 
         // Create host name verifier that only trusts cardcast
@@ -84,8 +86,7 @@ public class BotUtil {
         }
         catch (SQLException e)
         {
-            Logger.error("SQL error:");
-            Logger.printStackTrace(e);
+            LOGGER.error("SQL error:", e);
 
             return false;
         }
@@ -99,8 +100,7 @@ public class BotUtil {
         }
         catch (SQLException e)
         {
-            Logger.error("SQL error:");
-            Logger.printStackTrace(e);
+            LOGGER.error("SQL error:", e);
         }
     }
 
@@ -114,8 +114,7 @@ public class BotUtil {
             }
             catch (MissingPermissionsException | DiscordException e)
             {
-                Logger.error("Couldn't send message:");
-                Logger.printStackTrace(e);
+                LOGGER.error("Couldn't send message:", e);
             }
         });
     }
@@ -130,8 +129,7 @@ public class BotUtil {
             }
             catch (MissingPermissionsException | DiscordException e)
             {
-                Logger.error("Couldn't send message:");
-                Logger.printStackTrace(e);
+                LOGGER.error("Couldn't reply to message:", e);
             }
         });
     }
@@ -160,16 +158,14 @@ public class BotUtil {
                     }
                     catch (MissingPermissionsException | DiscordException e)
                     {
-                        Logger.error("Couldn't send file:");
-                        Logger.printStackTrace(e);
+                        LOGGER.error("Couldn't send file:", e);
                     }
                 });
             }
         }
         catch (IOException e)
         {
-            Logger.error("Couldn't send file:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't send file:", e);
         }
     }
 

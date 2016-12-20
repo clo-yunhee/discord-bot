@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.database.SqlSingletons;
-import nuclearcoder.util.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
 public class CahCardProvider {
 
     public static final String HOSTNAME = "api.cardcastgame.com";
+    private static final Logger Logger = LoggerFactory.getLogger(CahCardProvider.class);
     private static final String BASE_URL = "https://" + HOSTNAME + "/v1/decks/";
     private static final String INFO_URL_FORMAT = BASE_URL + "%s";
     private static final String CARDS_URL_FORMAT = INFO_URL_FORMAT + "/cards";
@@ -46,8 +48,7 @@ public class CahCardProvider {
         }
         catch (SQLException e)
         {
-            Logger.error("Couldn't load decks from database:");
-            Logger.printStackTrace(e);
+            Logger.error("Couldn't load decks from database:", e);
         }
     }
 
@@ -67,8 +68,7 @@ public class CahCardProvider {
             }
             catch (SQLException e)
             {
-                Logger.error("Couldn't save decks in database:");
-                Logger.printStackTrace(e);
+                Logger.error("Couldn't save decks in database:", e);
             }
         }
         return deck;
@@ -87,8 +87,7 @@ public class CahCardProvider {
             }
             catch (SQLException e)
             {
-                Logger.error("Couldn't save decks in database:");
-                Logger.printStackTrace(e);
+                Logger.error("Couldn't save decks in database:", e);
             }
         }
     }
@@ -169,10 +168,10 @@ public class CahCardProvider {
                     if (texts != null)
                     {
                         // TODO: ugly piece of code
-                        List<String> strs = new ArrayList<String>(texts.size());
+                        List<String> strs = new ArrayList<>(texts.size());
                         for (String bitOfText : texts)
                         {
-                            strs.add((String) bitOfText);
+                            strs.add(bitOfText);
                         }
                         String text = StringUtils.join(strs, "_____");
                         int pick = strs.size() - 1;
@@ -194,10 +193,10 @@ public class CahCardProvider {
                     {
                         // The white cards should only ever have one element in
                         // text, but let's be safe.
-                        final List<String> strs = new ArrayList<String>(texts.size());
+                        final List<String> strs = new ArrayList<>(texts.size());
                         for (final String bitOfText : texts)
                         {
-                            final String cardCastString = (String) bitOfText;
+                            final String cardCastString = bitOfText;
                             if (cardCastString.isEmpty())
                             {
                                 // skip blank segments
@@ -232,8 +231,7 @@ public class CahCardProvider {
         }
         catch (final Exception e)
         {
-            Logger.error(String.format("Unable to load deck %s from Cardcast:", code));
-            Logger.printStackTrace(e);
+            Logger.error(String.format("Unable to load deck %s from Cardcast:", code), e);
             return null;
         }
     }
@@ -282,17 +280,17 @@ public class CahCardProvider {
     }
 
     private class CardcastDeckInfo {
-        public String name;
-        public String description;
+        String name;
+        String description;
     }
 
     private class CardcastDeck {
-        public List<CardcastCard> calls;
-        public List<CardcastCard> responses;
+        List<CardcastCard> calls;
+        List<CardcastCard> responses;
     }
 
     private class CardcastCard {
-        private List<String> text;
+        List<String> text;
     }
 
 }

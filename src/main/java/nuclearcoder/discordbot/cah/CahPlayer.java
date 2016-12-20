@@ -1,7 +1,8 @@
 package nuclearcoder.discordbot.cah;
 
 import nuclearcoder.discordbot.cah.card.CahWhiteCard;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.RequestBuffer;
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CahPlayer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CahPlayer.class);
 
     private final IUser user;
     private final String userID;
@@ -21,7 +24,7 @@ public class CahPlayer {
 
     private int points;
 
-    public CahPlayer(IUser user)
+    CahPlayer(IUser user)
     {
         this.user = user;
         this.userID = user.getID();
@@ -37,8 +40,7 @@ public class CahPlayer {
             }
             catch (Exception e)
             {
-                Logger.error("Couldn't create hand message:");
-                Logger.printStackTrace(e);
+                LOGGER.error("Couldn't create hand message:", e);
             }
         });
     }
@@ -48,42 +50,42 @@ public class CahPlayer {
         return user;
     }
 
-    public String getUserID()
+    String getUserID()
     {
         return userID;
     }
 
-    public int retrievePickedCard()
+    int retrievePickedCard()
     {
         int card = pickedCardIndex;
         pickedCardIndex = 0;
         return card;
     }
 
-    public int getPoints()
+    int getPoints()
     {
         return points;
     }
 
-    public int getCardCount()
+    int getCardCount()
     {
         return hand.size();
     }
 
-    public boolean setPickedCard(int index, int size)
+    boolean setPickedCard(int index, int size)
     {
         this.pickedCardIndex = index;
         return index > 0 && index <= size;
     }
 
-    public void addCard(CahWhiteCard card, boolean doUpdate)
+    void addCard(CahWhiteCard card, boolean doUpdate)
     {
         hand.add(card);
         if (doUpdate)
             updateHandMessage();
     }
 
-    public CahWhiteCard removeCard(int index, boolean doUpdate)
+    CahWhiteCard removeCard(int index, boolean doUpdate)
     {
         CahWhiteCard card = hand.remove(index);
         if (doUpdate)
@@ -91,12 +93,12 @@ public class CahPlayer {
         return card;
     }
 
-    public void addPoint()
+    void addPoint()
     {
         points++;
     }
 
-    public void reset()
+    void reset()
     {
         if (handMessage != null)
         {
@@ -108,14 +110,13 @@ public class CahPlayer {
                 }
                 catch (Exception e)
                 {
-                    Logger.error("Couldn't delete hand message:");
-                    Logger.printStackTrace(e);
+                    LOGGER.error("Couldn't delete hand message:", e);
                 }
             });
         }
     }
 
-    public void updateHandMessage()
+    void updateHandMessage()
     {
         if (handMessage == null)
         {
@@ -127,8 +128,7 @@ public class CahPlayer {
                 }
                 catch (Exception e)
                 {
-                    Logger.error("Couldn't create hand message:");
-                    Logger.printStackTrace(e);
+                    LOGGER.error("Couldn't create hand message:", e);
                 }
             });
         }
@@ -156,8 +156,7 @@ public class CahPlayer {
             }
             catch (Exception e)
             {
-                Logger.error("Couldn't update hand message:");
-                Logger.printStackTrace(e);
+                LOGGER.error("Couldn't update hand message:", e);
             }
         });
     }

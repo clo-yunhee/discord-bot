@@ -5,7 +5,8 @@ import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.command.CommandManager;
 import nuclearcoder.discordbot.database.SqlCommands;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
@@ -15,6 +16,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 public class CmdManageCustomCommands implements Command {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmdManageCustomCommands.class);
 
     private final CommandManager commandsManager;
 
@@ -35,8 +38,7 @@ public class CmdManageCustomCommands implements Command {
         }
         catch (SQLException e)
         {
-            Logger.error("SQL error:");
-            Logger.printStackTrace(e);
+            LOGGER.error("SQL error:", e);
         }
     }
 
@@ -52,8 +54,7 @@ public class CmdManageCustomCommands implements Command {
         }
         catch (SQLException e)
         {
-            Logger.error("SQL error:");
-            Logger.printStackTrace(e);
+            LOGGER.error("SQL error:", e);
         }
     }
 

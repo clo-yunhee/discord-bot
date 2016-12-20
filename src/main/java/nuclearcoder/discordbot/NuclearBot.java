@@ -5,7 +5,8 @@ import nuclearcoder.discordbot.command.CommandManager;
 import nuclearcoder.discordbot.database.Database;
 import nuclearcoder.discordbot.database.SqlSingletons;
 import nuclearcoder.util.Config;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -24,12 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class NuclearBot {
 
     public static final String CONFIG_FILENAME = "discordbot.cfg";
-    public static final String LOG_FILENAME = "discordbot.log";
-
     public static final Set<String> TRUSTED_HOST_NAMES = new HashSet<>();
-
     public static final int GET_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(3);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(NuclearBot.class);
     private final AtomicBoolean reconnect;
     private volatile IDiscordClient client;
     private CommandManager commands;
@@ -69,13 +67,12 @@ public class NuclearBot {
         }
         catch (SQLException e)
         {
-            Logger.error("Could not ensure singleton SQL table exists:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Could not ensure singleton SQL table exists:", e);
         }
 
         BotUtil.setOperator(Config.get("first_op"), true); // add first op
 
-        Logger.info("Logging bot.");
+        LOGGER.info("Logging bot.");
         RequestBuffer.request(() ->
         {
             try
@@ -84,8 +81,7 @@ public class NuclearBot {
             }
             catch (DiscordException e)
             {
-                Logger.error("Couldn't log in:");
-                Logger.printStackTrace(e);
+                LOGGER.error("Couldn't log in:", e);
             }
         });
     }
@@ -94,15 +90,14 @@ public class NuclearBot {
     {
         reconnect.set(doReconnect);
 
-        Logger.info("Disconnecting bot.");
+        LOGGER.info("Disconnecting bot.");
         try
         {
             client.logout();
         }
         catch (DiscordException e)
         {
-            Logger.error("Couldn't log out:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't log out:", e);
         }
     }
 
@@ -115,11 +110,10 @@ public class NuclearBot {
         }
         catch (RuntimeException e)
         {
-            Logger.error("Error while starting command manager:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Error while starting command manager:", e);
         }
 
-        Logger.info("*** Bot is ready! ***");
+        LOGGER.info("*** Bot is ready! ***");
     }
     
     /* --- utility --- */
@@ -138,7 +132,7 @@ public class NuclearBot {
 
                     client.getDispatcher().unregisterListener(commands);
 
-                    Logger.info("Reconnecting bot.");
+                    LOGGER.info("Reconnecting bot.");
                     login();
                 }
                 else

@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimerKeepAlive extends TimerTask {
 
-    private static final long KEEP_ALIVE = TimeUnit.MINUTES.toMillis(5);
+    private static final long KEEP_ALIVE = TimeUnit.SECONDS.toMillis(10);
 
     final AtomicBoolean alive = new AtomicBoolean(true);
 

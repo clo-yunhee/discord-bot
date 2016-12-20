@@ -3,7 +3,8 @@ package nuclearcoder.discordbot.cah;
 import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.cah.card.CahBlackCard;
 import nuclearcoder.discordbot.cah.card.CahCardProvider;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IUser;
 
@@ -18,7 +19,7 @@ public class CahGame {
     public static final int STAGE_CZAR = 2;
     public static final int STAGE_POINTS = 3;
     public static final int STAGE_FINISH = 4;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CahGame.class);
     private final AtomicReference<IChannel> channel;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final CahCardProvider cards;
@@ -114,8 +115,7 @@ public class CahGame {
         }
         catch (Exception e)
         {
-            Logger.error("Couldn't update hand message:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't update hand message:", e);
         }
     }
 

@@ -3,7 +3,8 @@ package nuclearcoder.discordbot.cah;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import nuclearcoder.discordbot.database.SqlSingletons;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ public class CahConfig {
     static final String WHITE_TIMEOUT = "whiteTimeout";
     static final String BLACK_TIMEOUT = "blackTimeout";
     static final String TIME_BETWEEN_ROUNDS = "timeBetweenRounds";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CahConfig.class);
     private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>() {
     }.getType();
 
@@ -70,8 +71,7 @@ public class CahConfig {
         }
         catch (SQLException e)
         {
-            Logger.error("Couldn't save CaH config:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't save CaH config:", e);
         }
     }
 
@@ -88,8 +88,7 @@ public class CahConfig {
         }
         catch (SQLException e)
         {
-            Logger.error("Couldn't load CaH config:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Couldn't load CaH config:", e);
         }
     }
 

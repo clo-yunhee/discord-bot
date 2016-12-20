@@ -1,7 +1,8 @@
 package nuclearcoder.discordbot.database;
 
 import nuclearcoder.util.Config;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,6 +11,8 @@ import java.sql.Statement;
 import java.util.Properties;
 
 public class Database {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
 
     private static final String DRIVER = "com.mysql.jdbc.Driver";
 
@@ -26,8 +29,7 @@ public class Database {
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException e)
         {
             // handle the error
-            Logger.error("Could not load DB driver:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Could not load DB driver:", e);
         }
     }
 
@@ -56,8 +58,7 @@ public class Database {
         }
         catch (SQLException e)
         {
-            Logger.error("Could not open DB connection:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Could not open DB connection:", e);
 
             success = false;
         }
@@ -73,8 +74,7 @@ public class Database {
         }
         catch (SQLException e)
         {
-            Logger.error("Could not close DB connection:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Could not close DB connection:", e);
         }
     }
 
@@ -86,8 +86,7 @@ public class Database {
         }
         catch (SQLException e)
         {
-            Logger.error("Could not query DB state:");
-            Logger.printStackTrace(e);
+            LOGGER.error("Could not query DB state:", e);
             return false;
         }
     }
@@ -96,11 +95,11 @@ public class Database {
     {
         try (Statement statement = conn.createStatement())
         {
-            statement.execute("SELECT null FROM singletons");
+            statement.execute("SELECT null FROM singleton");
         }
         catch (SQLException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Could not keep alive:", e);
         }
     }
 }

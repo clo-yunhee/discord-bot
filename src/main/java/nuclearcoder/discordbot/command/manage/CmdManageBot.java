@@ -3,7 +3,8 @@ package nuclearcoder.discordbot.command.manage;
 import nuclearcoder.discordbot.BotUtil;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.Command;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IPrivateChannel;
 import sx.blah.discord.handle.obj.IUser;
@@ -11,6 +12,8 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
 public class CmdManageBot implements Command {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmdManageBot.class);
 
     @Override public void execute(final NuclearBot bot, final IMessage message,
             final String command, final String[] args)
@@ -62,8 +65,7 @@ public class CmdManageBot implements Command {
                 }
                 catch (DiscordException e)
                 {
-                    Logger.error("Error in bot management command:");
-                    Logger.printStackTrace(e);
+                    LOGGER.error("Error in bot management command:", e);
                 }
             });
         }

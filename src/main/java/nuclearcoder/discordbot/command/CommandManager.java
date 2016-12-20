@@ -15,7 +15,8 @@ import nuclearcoder.discordbot.database.Database;
 import nuclearcoder.discordbot.database.SqlCommands;
 import nuclearcoder.discordbot.database.SqlUsers;
 import nuclearcoder.util.Config;
-import nuclearcoder.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.IListener;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
@@ -24,6 +25,8 @@ import sx.blah.discord.handle.obj.IMessage;
 import java.sql.SQLException;
 
 public class CommandManager implements IListener<MessageReceivedEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandManager.class);
 
     private static final EmojiTransformer EMOJI_TRANSFORMER = new CustomEmojiTransformer();
     private final NuclearBot bot;
@@ -69,14 +72,13 @@ public class CommandManager implements IListener<MessageReceivedEvent> {
         // init custom commands
         try
         {
-            Logger.info("Registering custom commands");
+            LOGGER.info("Registering custom commands");
 
             commands.putAll(SqlCommands.allCommands());
         }
         catch (SQLException e)
         {
-            Logger.error("SQL error:");
-            Logger.printStackTrace(e);
+            LOGGER.error("SQL error:", e);
         }
     }
 
@@ -103,8 +105,7 @@ public class CommandManager implements IListener<MessageReceivedEvent> {
                     }
                     catch (SQLException e)
                     {
-                        Logger.error("Couldn't init player entry:");
-                        Logger.printStackTrace(e);
+                        LOGGER.error("Couldn't init player entry:", e);
                     }
                 }
 
@@ -114,7 +115,6 @@ public class CommandManager implements IListener<MessageReceivedEvent> {
                 }
             }
         }
-
     }
 
     public boolean hasCommand(String label)
@@ -136,11 +136,7 @@ public class CommandManager implements IListener<MessageReceivedEvent> {
 
         @Override public String transform(UnicodeCandidate unicodeCandidate)
         {
-            StringBuffer sb = new StringBuffer();
-            sb.append(':');
-            sb.append(unicodeCandidate.getEmoji().getAliases().get(0));
-            sb.append(':');
-            return sb.toString();
+            return ':' + unicodeCandidate.getEmoji().getAliases().get(0) + ':';
         }
 
     }

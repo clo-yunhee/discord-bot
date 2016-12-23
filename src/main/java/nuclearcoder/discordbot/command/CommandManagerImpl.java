@@ -1,8 +1,5 @@
 package nuclearcoder.discordbot.command;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.vdurmont.emoji.EmojiParser;
 import nuclearcoder.discordbot.NuclearBot;
 import nuclearcoder.discordbot.command.custom.CmdManageCustomCommands;
@@ -17,27 +14,21 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IMessage;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.Map;
 
 public class CommandManagerImpl implements CommandManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandManager.class);
 
     private final NuclearBot bot;
-    private final Multimap<String, Command> commands;
-
-    /* temporary fix for ConcurrentModificationException thrown */
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock readLock = readWriteLock.readLock();
-    private final Lock writeLock = readWriteLock.writeLock();
+    private final Map<String, Command> commands;
 
     public CommandManagerImpl(NuclearBot bot)
     {
         this.bot = bot;
-        this.commands = Multimaps.synchronizedMultimap(ArrayListMultimap.create());
+        this.commands = new HashMap<>();
     }
 
     @Override public void initCommands()
@@ -67,7 +58,7 @@ public class CommandManagerImpl implements CommandManager {
         {
             LOGGER.info("Registering custom commands");
 
-            commands.putAll(SqlCommands.allCommands());
+            SqlCommands.allCommands(commands);
         }
         catch (SQLException e)
         {
@@ -77,19 +68,11 @@ public class CommandManagerImpl implements CommandManager {
 
     @Override public void clearCommands()
     {
-        try
+        Iterator<Command> iterator = commands.values().iterator();
+        while (iterator.hasNext())
         {
-            writeLock.lock();
-            Iterator<Command> iterator = commands.values().iterator();
-            while (iterator.hasNext())
-            {
-                iterator.next();
-                iterator.remove();
-            }
-        }
-        finally
-        {
-            writeLock.unlock();
+            iterator.next();
+            iterator.remove();
         }
         //commands.clear();
     }
@@ -103,9 +86,11 @@ public class CommandManagerImpl implements CommandManager {
         if (content.startsWith(COMMAND_PREFIX))
         {
             String args[] = content.substring(1).split("\\s+");
-            String command = args[0];
+            String name = args[0];
 
-            if (commands.containsKey(command))
+            Command command = commands.get(name);
+
+            if (command != null)
             {
                 if (Database.isConnected())
                 {
@@ -122,25 +107,14 @@ public class CommandManagerImpl implements CommandManager {
                     }
                 }
 
-                try
-                {
-                    readLock.lock();
-                    for (Command cmd : commands.get(command))
-                    {
-                        cmd.execute(bot, message, command, args);
-                    }
-                }
-                finally
-                {
-                    readLock.unlock();
-                }
+                command.execute(bot, message, name, args);
             }
         }
     }
 
-    @Override public boolean hasCommand(String label)
+    @Override public Command getCommand(String label)
     {
-        return commands.containsKey(label);
+        return commands.get(label);
     }
 
     @Override public void putCommand(String label, Command command)
@@ -150,7 +124,7 @@ public class CommandManagerImpl implements CommandManager {
 
     @Override public void removeCommand(String label)
     {
-        commands.removeAll(label);
+        commands.remove(label);
     }
 
 }

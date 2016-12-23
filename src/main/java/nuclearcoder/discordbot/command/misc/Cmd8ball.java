@@ -13,8 +13,8 @@ import java.util.Random;
 
 public class Cmd8ball implements Command {
 
-    private String[] answers = new String[20];
-    private Random random = new Random();
+    private final String[] answers = new String[20];
+    private final Random random = new Random();
 
     {
         List<String> answerList = new ArrayList<>(answers.length);

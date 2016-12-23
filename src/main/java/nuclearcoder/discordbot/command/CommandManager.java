@@ -14,7 +14,7 @@ public interface CommandManager extends IListener<MessageReceivedEvent> {
 
     void handle(MessageReceivedEvent event);
 
-    boolean hasCommand(String label);
+    Command getCommand(String label);
 
     void putCommand(String label, Command command);
 

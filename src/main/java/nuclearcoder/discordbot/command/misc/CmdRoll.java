@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class CmdRoll implements Command {
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     @Override public void execute(NuclearBot bot, IMessage message, String command, String[] args)
     {

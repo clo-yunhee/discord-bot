@@ -33,7 +33,7 @@ public class Database {
         }
     }
 
-    public static final boolean openConnection()
+    public static final void openConnection()
     {
         String host = Config.get("db_host");
         String port = Config.get("db_port");
@@ -48,9 +48,6 @@ public class Database {
         connectionProps.put("password", pass);
         connectionProps.put("useSSL", "false");
         connectionProps.put("autoReconnect", "true");
-
-        boolean success = true;
-
         try
         {
             conn = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + schema,
@@ -59,11 +56,7 @@ public class Database {
         catch (SQLException e)
         {
             LOGGER.error("Could not open DB connection:", e);
-
-            success = false;
         }
-
-        return success;
     }
 
     public static final void closeConnection()

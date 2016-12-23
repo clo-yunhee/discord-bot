@@ -9,15 +9,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimerKeepAlive extends TimerTask {
 
-    private static final long KEEP_ALIVE = TimeUnit.SECONDS.toMillis(10);
+    private static final long KEEP_ALIVE = TimeUnit.SECONDS.toMillis(5);
 
     final AtomicBoolean alive = new AtomicBoolean(true);
 
-    private Timer timer;
+    private final Timer timer;
 
     TimerKeepAlive()
     {
-        this.timer = new Timer("keepalive", false);
+        this.timer = new Timer("keepAlive", false);
         timer.schedule(this, KEEP_ALIVE, KEEP_ALIVE);
     }
 

@@ -1,15 +1,18 @@
 package nuclearcoder.discordbot.database;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import nuclearcoder.discordbot.command.Command;
 import nuclearcoder.discordbot.command.custom.CmdCustomCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 public class SqlCommands {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqlCommands.class);
 
     public static final void create(String guildID, String name, String answer) throws SQLException
     {
@@ -56,7 +59,7 @@ public class SqlCommands {
         return exists;
     }
 
-    public static final Multimap<String, Command> allCommands() throws SQLException
+    public static final void allCommands(Map<String, Command> commands) throws SQLException
     {
         PreparedStatement statement = Database.conn.prepareStatement(
                 "SELECT `guild`, `name`, `answer` FROM `commands` "
@@ -64,21 +67,29 @@ public class SqlCommands {
 
         ResultSet rs = statement.executeQuery();
 
-        Multimap<String, Command> commandSet = ArrayListMultimap.create(20, 2);
-
         while (rs.next())
         {
             String guildID = rs.getString("guild");
-            String command = rs.getString("name");
+            String name = rs.getString("name");
             String answer = rs.getString("answer");
 
-            commandSet.put(command, new CmdCustomCommand(guildID, answer));
+            Command command = commands.get(name);
+            if (command == null)
+            {
+                commands.put(name, new CmdCustomCommand(guildID, answer));
+            }
+            else if (command instanceof CmdCustomCommand)
+            {
+                ((CmdCustomCommand) command).put(guildID, answer);
+            }
+            else
+            {
+                LOGGER.error("Unable to register command {}, existing name", name);
+            }
         }
 
         rs.close();
         statement.close();
-
-        return commandSet;
     }
 
 }

@@ -26,15 +26,27 @@ public class CmdManageCustomCommands implements Command {
         this.commandsManager = manager;
     }
 
-    private void register(NuclearBot bot, IMessage message, String command, String answer)
+    private void register(String guildID, String name, String answer)
     {
-        String guildID = message.getGuild().getID();
+        Command command = commandsManager.getCommand(name);
+        if (command == null)
+        {
+            commandsManager.putCommand(name, new CmdCustomCommand(guildID, answer));
+        }
+        else if (command instanceof CmdCustomCommand)
+        {
+            ((CmdCustomCommand) command).put(guildID, answer);
+        }
+        else
+        {
+            LOGGER.error("Unable to register command {}, existing name", name);
+            return;
+        }
 
-        commandsManager.putCommand(command, new CmdCustomCommand(guildID, answer));
-
+        // only reached if a command was added
         try
         {
-            SqlCommands.create(guildID, command, answer);
+            SqlCommands.create(guildID, name, answer);
         }
         catch (SQLException e)
         {
@@ -42,19 +54,34 @@ public class CmdManageCustomCommands implements Command {
         }
     }
 
-    private void unregister(NuclearBot bot, IMessage message, String command)
+    private void unregister(String guildID, String name)
     {
-        String guildID = message.getGuild().getID();
+        Command command = commandsManager.getCommand(name);
+        if (command != null && command instanceof CmdCustomCommand)
+        {
+            if (((CmdCustomCommand) command).remove(guildID))
+                commandsManager.removeCommand(guildID);
 
-        commandsManager.removeCommand(command);
+            try
+            {
+                SqlCommands.remove(guildID, name);
+            }
+            catch (SQLException e)
+            {
+                LOGGER.error("SQL error:", e);
+            }
+        }
+    }
 
+    private boolean commandExists(String guildID, String name)
+    {
         try
         {
-            SqlCommands.remove(guildID, command);
+            return SqlCommands.exists(guildID, name);
         }
         catch (SQLException e)
         {
-            LOGGER.error("SQL error:", e);
+            return false;
         }
     }
 
@@ -82,7 +109,7 @@ public class CmdManageCustomCommands implements Command {
                 {
                     String argCommand = args[1];
 
-                    if (commandsManager.hasCommand(argCommand))
+                    if (commandExists(guildID, argCommand))
                     {
                         BotUtil.reply(message,
                                 "this command already exists. You can un-register if it's a custom command. :warning:");
@@ -92,7 +119,7 @@ public class CmdManageCustomCommands implements Command {
                         String argAnswer = String
                                 .join(" ", Arrays.copyOfRange(args, 2, args.length));
 
-                        register(bot, message, argCommand, argAnswer);
+                        register(guildID, argCommand, argAnswer);
 
                         BotUtil.sendMessage(message.getChannel(), "the `" + argCommand
                                 + "` command was created successfully. :white_check_mark:");
@@ -109,24 +136,14 @@ public class CmdManageCustomCommands implements Command {
                 {
                     String argCommand = args[1];
 
-                    boolean commandExists = false;
-                    try
-                    {
-                        commandExists = SqlCommands.exists(guildID, argCommand);
-                    }
-                    catch (SQLException e)
-                    {
-                        // fail silently
-                    }
-
-                    if (!commandExists)
+                    if (!commandExists(guildID, argCommand))
                     {
                         BotUtil.reply(message,
                                 "this command does not exist or is reserved. You can register if it's a custom command. :warning:");
                     }
                     else
                     {
-                        unregister(bot, message, argCommand);
+                        unregister(guildID, argCommand);
 
                         BotUtil.sendMessage(message.getChannel(), "the `" + argCommand
                                 + "` command was removed successfully. :white_check_mark:");

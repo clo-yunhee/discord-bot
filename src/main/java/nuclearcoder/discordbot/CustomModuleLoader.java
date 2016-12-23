@@ -90,7 +90,7 @@ public class CustomModuleLoader {
         File[] files = listModulesDirectory();
         if (files != null && files.length > 0)
         {
-            LOGGER.info("Attempting to (re-)load {} external module(s)...", files.length);
+            LOGGER.info("Attempting to (re-)load {} module(s)...", files.length);
 
             for (File file : files)
                 loadFile(file, loader);

@@ -1,11 +1,29 @@
 <configuration>
+
+    <shutdownHook/>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>nuclearbot.log</file>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
+
     <logger name="deng" level="DEBUG"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="FILE"/>
+    </root>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>

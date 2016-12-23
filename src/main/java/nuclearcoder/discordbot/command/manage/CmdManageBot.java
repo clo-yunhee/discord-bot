@@ -54,13 +54,18 @@ public class CmdManageBot implements Command {
                                 BotUtil.setOperator(mentioned.getID(), setOp);
                                 // notify new op
                                 BotUtil.sendMessage(mentioned.getOrCreatePMChannel(), notification);
-                                sb.append("\n- ");
-                                sb.append(mentioned.mention());
+                                sb.append("\n**");
+                                sb.append(mentioned.getName());
+                                sb.append("**");
                             }
 
                             BotUtil.sendMessage(pmChannel, sb.toString());
                             // notify executor
                         }
+                    }
+                    else if (command.equalsIgnoreCase("reload"))
+                    {
+                        BotUtil.reloadModules(bot.getModuleLoader());
                     }
                 }
                 catch (DiscordException e)

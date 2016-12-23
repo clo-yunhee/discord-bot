@@ -1,7 +1,5 @@
-discordbot.cfg
-discordbot.log
-gradle.properties
-.gradle
-.idea
-build
-modules
+/gradle.properties
+/.gradle
+/.idea
+/build
+/modules

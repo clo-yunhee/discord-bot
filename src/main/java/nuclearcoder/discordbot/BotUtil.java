@@ -4,6 +4,7 @@ import nuclearcoder.discordbot.database.SqlUsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.modules.ModuleLoader;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
@@ -106,17 +107,18 @@ public class BotUtil {
 
     public static final void sendMessage(IChannel channel, String content)
     {
-        RequestBuffer.request(() ->
-        {
-            try
+        if (channel != null)
+            RequestBuffer.request(() ->
             {
-                channel.sendMessage(content);
-            }
-            catch (MissingPermissionsException | DiscordException e)
-            {
-                LOGGER.error("Couldn't send message:", e);
-            }
-        });
+                try
+                {
+                    channel.sendMessage(content);
+                }
+                catch (MissingPermissionsException | DiscordException e)
+                {
+                    LOGGER.error("Couldn't send message:", e);
+                }
+            });
     }
 
     public static final void reply(IMessage message, String content)
@@ -222,6 +224,10 @@ public class BotUtil {
         return ((hrs * 60) + min) * 60 + sec;
     }
 
+    public static void reloadModules(ModuleLoader loader)
+    {
+        CustomModuleLoader.reloadModules(loader);
+    }
 }
 
 

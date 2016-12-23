@@ -16,7 +16,7 @@ public class Database {
 
     private static final String DRIVER = "com.mysql.jdbc.Driver";
 
-    static Connection conn = null;
+    public static Connection conn = null;
 
     public static final void loadDriver()
     {

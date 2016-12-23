@@ -1,8 +1,7 @@
 package nuclearcoder.discordbot;
 
-import nuclearcoder.discordbot.cah.card.CahCardProvider;
 import nuclearcoder.discordbot.command.CommandManager;
-import nuclearcoder.discordbot.database.Database;
+import nuclearcoder.discordbot.command.CommandManagerImpl;
 import nuclearcoder.discordbot.database.SqlSingletons;
 import nuclearcoder.util.Config;
 import org.slf4j.Logger;
@@ -12,6 +11,7 @@ import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.DisconnectedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.modules.ModuleLoader;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.RequestBuffer;
 
@@ -24,27 +24,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NuclearBot {
 
-    public static final String CONFIG_FILENAME = "discordbot.cfg";
+    public static final String CONFIG_FILENAME = "nuclearbot.cfg";
     public static final Set<String> TRUSTED_HOST_NAMES = new HashSet<>();
     public static final int GET_TIMEOUT = (int) TimeUnit.SECONDS.toMillis(3);
     private static final Logger LOGGER = LoggerFactory.getLogger(NuclearBot.class);
+
+    static
+    {
+        TRUSTED_HOST_NAMES.add("api.cardcastgame.com");
+        TRUSTED_HOST_NAMES.add("puu.sh");
+    }
+
     private final AtomicBoolean reconnect;
     private volatile IDiscordClient client;
     private CommandManager commands;
     private TimerKeepAlive keeper;
 
-    {
-        TRUSTED_HOST_NAMES.add(CahCardProvider.HOSTNAME);
-        TRUSTED_HOST_NAMES.add("puu.sh");
-    }
-
     public NuclearBot(String token) throws DiscordException
     {
-        BotUtil.hackSslVerifier(); // before everything else
-
         this.client = new ClientBuilder().withToken(token).setDaemon(true)
-                .setMaxReconnectAttempts(20).build();
+                .setMaxReconnectAttempts(Integer.MAX_VALUE).build();
         this.reconnect = new AtomicBoolean(true);
+        this.commands = new CommandManagerImpl(this);
         this.keeper = new TimerKeepAlive();
 
         client.getDispatcher().registerListener(this);
@@ -57,10 +58,13 @@ public class NuclearBot {
         return client;
     }
 
+    public ModuleLoader getModuleLoader()
+    {
+        return client.getModuleLoader();
+    }
+
     void login()
     {
-        Database.openConnection();
-
         try
         {
             SqlSingletons.ensureExists();
@@ -105,13 +109,15 @@ public class NuclearBot {
     {
         try
         {
-            this.commands = new CommandManager(this);
+            commands.initCommands();
             client.getDispatcher().registerListener(commands);
         }
         catch (RuntimeException e)
         {
             LOGGER.error("Error while starting command manager:", e);
         }
+
+        BotUtil.reloadModules(client.getModuleLoader());
 
         LOGGER.info("*** Bot is ready! ***");
     }
@@ -120,12 +126,12 @@ public class NuclearBot {
 
     @EventSubscriber public void onDisconnected(DisconnectedEvent event)
     {
+        commands.clearCommands();
+
         if (event.getReason() == DisconnectedEvent.Reason.LOGGED_OUT)
         {
             CompletableFuture.runAsync(() ->
             {
-                Database.closeConnection();
-
                 if (reconnect.get())
                 {
                     reconnect.set(false);
@@ -139,7 +145,6 @@ public class NuclearBot {
                 {
                     keeper.alive.set(false);
                 }
-
             });
         }
     }

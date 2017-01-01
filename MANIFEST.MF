@@ -1,2 +1,2 @@
 Manifest-version: 1.0
-Main-Class: nuclearcoder.discordbot.Main
+Main-Class: nukebot.MainKt

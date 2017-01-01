@@ -6,15 +6,17 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 import java.sql.SQLException
-import java.sql.Statement
 import java.util.*
 
 object Database {
 
+    val LOGGER: Logger = LoggerFactory.getLogger(Database::class.java)
+
     var conn: Connection? = null
 
-    val LOGGER: Logger = LoggerFactory.getLogger(Database::class.java)
+    private var kaStatement: PreparedStatement? = null
 
     fun loadDriver() {
         try {
@@ -52,6 +54,7 @@ object Database {
         try {
             conn = DriverManager.getConnection("jdbc:mysql://$host:$port/$schema",
                     connectionProps)
+            kaStatement = conn?.prepareStatement("SELECT null FROM singleton")
         } catch (e: SQLException) {
             LOGGER.error("Could not open DB connection", e)
             conn = null
@@ -60,6 +63,7 @@ object Database {
 
     fun closeConnection() {
         try {
+            kaStatement?.close()
             conn?.close()
         } catch (e: SQLException) {
             LOGGER.error("Could not close DB connection", e)
@@ -77,14 +81,10 @@ object Database {
         }
 
     fun keepAlive() {
-        var st: Statement? = null
         try {
-            st = conn?.createStatement()
-            st?.execute("SELECT null FROM singleton")
+            kaStatement?.execute()
         } catch (e: SQLException) {
             LOGGER.error("Could not keep alive", e)
-        } finally {
-            st?.close()
         }
     }
 }

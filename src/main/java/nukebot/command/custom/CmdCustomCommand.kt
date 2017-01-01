@@ -2,7 +2,7 @@ package nukebot.command.custom
 
 import nukebot.NuclearBot
 import nukebot.command.Command
-import nukebot.rSendMessage
+import nukebot.util.rSendMessage
 import nukeutils.ArgumentFormatter
 import sx.blah.discord.handle.obj.IMessage
 import java.util.*

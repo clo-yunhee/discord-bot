@@ -1,9 +1,13 @@
 package nukebot.command.custom
 
-import nukebot.*
+import nukebot.LOGGER
+import nukebot.NuclearBot
 import nukebot.command.Command
 import nukebot.command.CommandManager
 import nukebot.database.SqlCommands
+import nukebot.util.hasPermission
+import nukebot.util.rReply
+import nukebot.util.rSendMessage
 import sx.blah.discord.handle.obj.IMessage
 import sx.blah.discord.handle.obj.Permissions
 import java.sql.SQLException

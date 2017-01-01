@@ -2,10 +2,13 @@ package nukebot.command.misc
 
 import nukebot.NuclearBot
 import nukebot.command.Command
-import nukebot.rSendMessage
+import nukebot.util.rSendMessage
 import sx.blah.discord.handle.obj.IMessage
 
-class CmdHug : Command {
+class CmdTarget
+
+// param is (mention, target) -> (answer)
+(private val answer: (String, String) -> String) : Command {
 
     override fun execute(bot: NuclearBot, message: IMessage, command: String, args: Array<String>) {
         if (args.size >= 2) {
@@ -14,7 +17,7 @@ class CmdHug : Command {
 
             val target = args.sliceArray(1..args.lastIndex).joinToString(" ").trim()
 
-            channel.rSendMessage(user.mention() + " hugs " + target + "  (\u3064\u2267\u25BD\u2266)\u3064")
+            channel.rSendMessage(answer(user.mention(), target))
         }
     }
 

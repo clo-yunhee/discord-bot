@@ -5,7 +5,10 @@ import nukebot.LOGGER
 import nukebot.NuclearBot
 import nukebot.command.custom.CmdManageCustomCommands
 import nukebot.command.manage.CmdManageBot
-import nukebot.command.misc.*
+import nukebot.command.misc.Cmd8ball
+import nukebot.command.misc.CmdAnswer
+import nukebot.command.misc.CmdRoll
+import nukebot.command.misc.CmdTarget
 import nukebot.database.Database
 import nukebot.database.SqlCommands
 import nukebot.database.SqlUsers
@@ -21,22 +24,22 @@ class CommandManagerImpl(private val bot: NuclearBot) : CommandManager {
         // system commands
         val manageBot = CmdManageBot()
         val manageCustomCommands = CmdManageCustomCommands(this)
-        commands.put("stop", manageBot)
-        commands.put("restart", manageBot)
-        commands.put("set_op", manageBot)
-        commands.put("reload", manageBot)
-        commands.put("add_cmd", manageCustomCommands)
-        commands.put("rem_cmd", manageCustomCommands)
+        commands["stop"] = manageBot
+        commands["restart"] = manageBot
+        commands["setop"] = manageBot
+        commands["reload"] = manageBot
+        commands["add_cmd"] = manageCustomCommands
+        commands["rem_cmd"] = manageCustomCommands
 
         // pre-built commands
-        commands.put("roll", CmdRoll())
-        commands.put("hug", CmdHug())
-        commands.put("kiss", CmdKiss())
-        commands.put("pat", CmdPat())
-        commands.put("lick", CmdLick())
-        commands.put("uwu", CmdUwu())
-        commands.put("8ball", Cmd8ball())
-        commands.put("ping", CmdPing())
+        commands["hug"] = CmdTarget { user, target -> "$user hugs $target  (\u3064\u2267\u25BD\u2266)\u3064" }
+        commands["kiss"] = CmdTarget { user, target -> "$user kisses $target  ( \u02D8 \u00B3\u02D8) ~~" }
+        commands["lick"] = CmdTarget { user, target -> "$user licks $target  ('\u30FB\u03C9\u30FB')" }
+        commands["pat"] = CmdTarget { user, target -> "$user pats $target" }
+        commands["uwu"] = CmdAnswer { user -> "uwu" }
+        commands["ping"] = CmdAnswer { user -> "Pong!" }
+        commands["roll"] = CmdRoll()
+        commands["8ball"] = Cmd8ball()
 
         // init custom commands
         try {
@@ -84,7 +87,7 @@ class CommandManagerImpl(private val bot: NuclearBot) : CommandManager {
     }
 
     override fun putCommand(label: String, command: Command) {
-        commands.put(label, command)
+        commands[label] = command
     }
 
     override fun removeCommand(label: String) {

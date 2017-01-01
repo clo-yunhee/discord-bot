@@ -69,9 +69,9 @@ internal fun reloadModules(loader: ModuleLoader) {
 
     // load new
     val files = listModulesDirectory()
-    if (files.isNotEmpty()) {
-        LOGGER.info("Attempting to (re-)load {} module(s)...", files.size)
 
+    LOGGER.info("Attempting to (re-)load {} module(s)...", files.size)
+    if (files.isNotEmpty()) {
         files.forEach { loadFile(it, loader) }
     }
 }

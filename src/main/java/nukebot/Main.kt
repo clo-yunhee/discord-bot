@@ -1,6 +1,7 @@
 package nukebot
 
 import nukebot.database.Database
+import nukebot.util.hackSslVerifier
 import nukeutils.Config
 import sx.blah.discord.modules.Configuration
 
@@ -9,7 +10,6 @@ fun main(args: Array<String>) {
     hackSslVerifier() // before everything else
 
     Database.loadDriver() // load MySQL connector
-    Database.openConnection()
 
     Config.reloadConfig()
 

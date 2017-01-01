@@ -3,77 +3,65 @@ package nukebot.database
 import nukebot.LOGGER
 import nukebot.command.Command
 import nukebot.command.custom.CmdCustomCommand
+import nukebot.util.statement
 import java.sql.SQLException
 
 object SqlCommands {
 
     @Throws(SQLException::class)
     fun create(guildID: String, name: String, answer: String) {
-        val statement = Database.conn?.prepareStatement(
-                "INSERT INTO `commands` " + "(`guild`, `name`, `answer`) " + "VALUES "
-                        + "(?, ?, ?)") ?: return
+        statement("INSERT INTO `commands` " + "(`guild`, `name`, `answer`) VALUES (?, ?, ?)") { st ->
 
-        statement.setString(1, guildID)
-        statement.setString(2, name)
-        statement.setString(3, answer)
+            st.setString(1, guildID)
+            st.setString(2, name)
+            st.setString(3, answer)
 
-        statement.executeUpdate()
-
-        statement.close()
+            st.executeUpdate()
+        }
     }
 
     @Throws(SQLException::class)
     fun remove(guildID: String, name: String) {
-        val statement = Database.conn
-                ?.prepareStatement("DELETE FROM `commands` WHERE (`guild`, `name`) = (?, ?)") ?: return
+        statement("DELETE FROM `commands` WHERE (`guild`, `name`) = (?, ?)") { st ->
 
-        statement.setString(1, guildID)
-        statement.setString(2, name)
+            st.setString(1, guildID)
+            st.setString(2, name)
 
-        statement.executeUpdate()
-
-        statement.close()
+            st.executeUpdate()
+        }
     }
 
     @Throws(SQLException::class)
     fun exists(guildID: String, name: String): Boolean {
-        val statement = Database.conn
-                ?.prepareStatement("SELECT `name` FROM `commands` WHERE (`guild`, `name`) = (?, ?)") ?: return false
+        return statement("SELECT `name` FROM `commands` WHERE (`guild`, `name`) = (?, ?)", false) { st ->
 
-        statement.setString(1, guildID)
-        statement.setString(2, name)
+            st.setString(1, guildID)
+            st.setString(2, name)
 
-        val rs = statement.executeQuery()
-        val exists = rs.first()
-
-        rs.close()
-        statement.close()
-
-        return exists
+            return st.executeQuery().first()
+        }
     }
 
     @Throws(SQLException::class)
     fun allCommands(commands: MutableMap<String, Command>) {
-        val statement = Database.conn?.prepareStatement(
-                "SELECT `guild`, `name`, `answer` FROM `commands` " + "LIMIT 0, 18446744073709551615") ?: return
+        statement(
+                "SELECT `guild`, `name`, `answer` FROM `commands` LIMIT 0, 18446744073709551615") { st ->
 
-        val rs = statement.executeQuery() ?: return
+            val rs = st.executeQuery() ?: return
 
-        while (rs.next()) {
-            val guildID = rs.getString("guild")
-            val name = rs.getString("name")
-            val answer = rs.getString("answer")
+            while (rs.next()) {
+                val guildID = rs.getString("guild")
+                val name = rs.getString("name")
+                val answer = rs.getString("answer")
 
-            val command = commands[name]
-            when (command) {
-                null -> commands.put(name, CmdCustomCommand(guildID, answer))
-                is CmdCustomCommand -> command.put(guildID, answer)
-                else -> LOGGER.error("Unable to register command {}, existing name", name)
+                val command = commands[name]
+                when (command) {
+                    null -> commands.put(name, CmdCustomCommand(guildID, answer))
+                    is CmdCustomCommand -> command.put(guildID, answer)
+                    else -> LOGGER.error("Unable to register command {}, existing name", name)
+                }
             }
         }
-
-        rs.close()
-        statement.close()
     }
 
 }

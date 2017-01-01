@@ -1,7 +1,12 @@
 package nukebot.command.manage
 
-import nukebot.*
+import nukebot.LOGGER
+import nukebot.NuclearBot
 import nukebot.command.Command
+import nukebot.reloadModules
+import nukebot.util.isOperator
+import nukebot.util.rSendMessage
+import nukebot.util.setOperator
 import sx.blah.discord.handle.obj.IMessage
 import sx.blah.discord.util.DiscordException
 import sx.blah.discord.util.RequestBuffer

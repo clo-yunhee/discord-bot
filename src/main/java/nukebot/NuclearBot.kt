@@ -2,7 +2,9 @@ package nukebot
 
 import nukebot.command.CommandManager
 import nukebot.command.CommandManagerImpl
+import nukebot.database.Database
 import nukebot.database.SqlSingletons
+import nukebot.util.setOperator
 import nukeutils.Config
 import sx.blah.discord.api.ClientBuilder
 import sx.blah.discord.api.IDiscordClient
@@ -32,6 +34,8 @@ class NuclearBot(token: String) {
     }
 
     fun login() {
+        Database.openConnection()
+
         try {
             SqlSingletons.ensureExists()
         } catch (e: SQLException) {
@@ -82,6 +86,8 @@ class NuclearBot(token: String) {
 
         if (event.reason == DisconnectedEvent.Reason.LOGGED_OUT) {
             CompletableFuture.runAsync {
+                Database.closeConnection()
+
                 if (reconnect.compareAndSet(true, false)) {
                     client.dispatcher.unregisterListener(commands)
 
